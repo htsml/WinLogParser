@@ -1,0 +1,169 @@
+﻿using WinLogParser.Model;
+using WinLogParser;
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Windows.Forms;
+
+namespace WinLogParser
+{
+    public partial class FilterForm : Form
+    {
+        private CmdSetting m_Setting;
+        private bool m_IsAutoScroll = false;
+
+        public FilterForm()
+        {
+            InitializeComponent();
+            InitializeSplitButtons();
+        }
+
+        public void AppendLog(string line)
+        {
+            if (m_Setting == null)
+                return;
+
+            if (LogParser.TryParseLine(line, m_Setting, out var row))
+            {
+                if (dataGridView.InvokeRequired)
+                {
+                    dataGridView.Invoke(new MethodInvoker(() =>
+                    {
+                        if (!m_IsAutoScroll)
+                            dataGridView.Rows.Add(row.ToArray());
+                        else
+                            AddLogAndScroll(row);
+                    }));
+                }
+                else
+                {
+                    if (!m_IsAutoScroll)
+                        dataGridView.Rows.Add(row.ToArray());
+                    else
+                        AddLogAndScroll(row);
+                }
+            }
+        }
+
+        private void InitializeSplitButtons()
+        {
+            ScrollMode_SplitBtn.DropDownItems.Add("Auto", null, (s, e) =>
+            {
+                m_IsAutoScroll = true;
+                ScrollMode_SplitBtn.Text = "Auto";
+            });
+
+            ScrollMode_SplitBtn.DropDownItems.Add("Manual", null, (s, e) =>
+            {
+                m_IsAutoScroll = false;
+                ScrollMode_SplitBtn.Text = "Manual";
+            });
+        }
+
+        private void GridUpdate()
+        {
+            dataGridView.Rows.Clear();
+            dataGridView.Columns.Clear();
+
+            dataGridView.Columns.Add("TimeDir", "Time/Direction");
+            foreach (var field in m_Setting.Fields)
+                dataGridView.Columns.Add(field.FieldName, field.FieldName);
+        }
+
+        private void Clean()
+        {
+            m_Setting = new CmdSetting();
+            dataGridView.Columns.Clear();
+            dataGridView.Rows.Clear();
+        }
+
+        private void SaveSettingsToFile(string filePath)
+        {
+            SettingsStorage.SaveToFile(m_Setting, filePath);
+        }
+
+        private void LoadSettingsFromFile(string filePath)
+        {
+            try
+            {
+                Clean();
+                m_Setting = SettingsStorage.LoadFromFile(filePath);
+                this.Text = m_Setting.Title;
+                GridUpdate();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message);
+            }
+        }
+
+        private void AddLogAndScroll(List<string> row)
+        {
+            int rowIndex = dataGridView.Rows.Add(row.ToArray());
+            dataGridView.Update();
+
+            try
+            {
+                dataGridView.FirstDisplayedScrollingRowIndex = dataGridView.RowCount - 1;
+            }
+            catch 
+            {
+            }
+        }
+
+        private void OpenCMDSettingForm_TSBtn_Click(object sender, EventArgs e)
+        {
+            using (var dig = new CommandSettingsForm(m_Setting.Title, m_Setting.CmdValue, m_Setting.CmdIndex, m_Setting.Fields))
+            {
+                if (dig.ShowDialog() == DialogResult.OK)
+                {
+                    m_Setting = new CmdSetting
+                    {
+                        Title = dig.Title,
+                        CmdValue = dig.CmdValue,
+                        CmdIndex = dig.CmdIndex,
+                        Fields = dig.Fields.ToList()
+                    };
+
+                    GridUpdate();
+                }
+            }
+        }
+
+
+        private void CmdSave_TSBtn_Click(object sender, EventArgs e)
+        {
+            using (SaveFileDialog sfd = new SaveFileDialog())
+            {
+                sfd.Filter = "JSON File (*.json)|*.json";
+                if (sfd.ShowDialog() == DialogResult.OK)
+                    SaveSettingsToFile(sfd.FileName);
+            }
+        }
+
+
+        private void CmdLoad_TSBtn_Click(object sender, EventArgs e)
+        {
+            using (OpenFileDialog ofd = new OpenFileDialog())
+            {
+                ofd.Filter = "JSON File (*.json)|*.json";
+                if (ofd.ShowDialog() == DialogResult.OK)
+                    LoadSettingsFromFile(ofd.FileName);
+            }
+        }
+
+        private void dataGridView_CellClick(object sender, DataGridViewCellEventArgs e)
+        {
+            if (e.RowIndex < 0 || e.ColumnIndex < 0)
+                return;
+
+            dataGridView.Rows[e.RowIndex].Selected = true;
+            if (m_IsAutoScroll)
+            {
+                m_IsAutoScroll = false;
+                ScrollMode_SplitBtn.Text = "Manual";
+            }
+        }
+    }
+}
