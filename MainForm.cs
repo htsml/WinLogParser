@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Windows.Forms;
+using System.Reflection;
 
 namespace WinLogParser
 {
@@ -23,6 +24,8 @@ namespace WinLogParser
         {
             InitializeComponent();
             InitializeSplitButtons();
+
+            EnableDoubleBuffering(dataGridViewAll);
         }
 
         private void InitializeSplitButtons()
@@ -39,7 +42,12 @@ namespace WinLogParser
                 ScrollMode_SplitBtn.Text = "Manual";
             });
         }
-
+        private void EnableDoubleBuffering(DataGridView dgv)
+        {
+            typeof(DataGridView).InvokeMember("DoubleBuffered",
+                                                                          BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.SetProperty,
+                                                                          null, dgv, new object[] { true });
+        }
         private void InitializeLogGrid()
         {
             dataGridViewAll.Columns.Clear();
@@ -55,7 +63,7 @@ namespace WinLogParser
             {
                 Name = "RawLog",
                 HeaderText = "Raw Log",
-                Width = 10000,
+                Width = 20000,
                 DefaultCellStyle = new DataGridViewCellStyle
                 {
                     WrapMode = DataGridViewTriState.True,
@@ -94,7 +102,6 @@ namespace WinLogParser
             dataGridViewAll.Invoke((MethodInvoker)(() =>
             {
                 int rowIndex = dataGridViewAll.Rows.Add(line);
-                dataGridViewAll.Update();
 
                 if (m_IsAutoScroll)
                 {
@@ -107,6 +114,8 @@ namespace WinLogParser
 
         private void Open_TSBtn_Click(object sender, EventArgs e)
         {
+            m_IsInitialized = false;
+
             dataGridViewAll.Rows.Clear();
             dataGridViewAll.Columns.Clear();
 

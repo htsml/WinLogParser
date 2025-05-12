@@ -12,5 +12,6 @@ namespace WinLogParser.Model
         public string CmdValue { get; set; }
         public string CmdIndex { get; set; }
         public List<Field> Fields { get; set; }
+        public bool IsRead { get; set; }
     }
 }

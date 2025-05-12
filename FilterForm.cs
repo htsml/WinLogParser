@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Windows.Forms;
+using System.Reflection;
 
 namespace WinLogParser
 {
@@ -17,6 +18,8 @@ namespace WinLogParser
         {
             InitializeComponent();
             InitializeSplitButtons();
+
+            EnableDoubleBuffering(dataGridView);
         }
 
         public void AppendLog(string line)
@@ -61,6 +64,25 @@ namespace WinLogParser
             });
         }
 
+        private void InitializeSettings()
+        {
+            if(m_Setting == null)
+            {
+                m_Setting = new CmdSetting()
+                {
+                    Title = "",
+                    Fields = new List<Field>(),
+                    CmdIndex = "",
+                    CmdValue = ""
+                };
+            }
+        }
+        private void EnableDoubleBuffering(DataGridView dgv)
+        {
+            typeof(DataGridView).InvokeMember("DoubleBuffered",
+                                                                          BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.SetProperty,
+                                                                          null, dgv, new object[] { true });
+        }
         private void GridUpdate()
         {
             dataGridView.Rows.Clear();
@@ -73,7 +95,6 @@ namespace WinLogParser
 
         private void Clean()
         {
-            m_Setting = new CmdSetting();
             dataGridView.Columns.Clear();
             dataGridView.Rows.Clear();
         }
@@ -101,20 +122,26 @@ namespace WinLogParser
         private void AddLogAndScroll(List<string> row)
         {
             int rowIndex = dataGridView.Rows.Add(row.ToArray());
-            dataGridView.Update();
+            int visibleRows = 0;
+            int targetIndex = 0;
 
             try
             {
-                dataGridView.FirstDisplayedScrollingRowIndex = dataGridView.RowCount - 1;
+                visibleRows = dataGridView.DisplayedRowCount(false);
+                targetIndex = Math.Max(0, dataGridView.RowCount - visibleRows);
+                dataGridView.FirstDisplayedScrollingRowIndex = targetIndex;
             }
-            catch 
+            catch(Exception e)
             {
+                Console.WriteLine($"AddLogAndScroll_____{e.Message}");
             }
         }
 
         private void OpenCMDSettingForm_TSBtn_Click(object sender, EventArgs e)
         {
-            using (var dig = new CommandSettingsForm(m_Setting.Title, m_Setting.CmdValue, m_Setting.CmdIndex, m_Setting.Fields))
+            if(m_Setting == null)
+                InitializeSettings();
+            using (var dig = new CommandSettingsForm(m_Setting.Title, m_Setting.CmdValue, m_Setting.CmdIndex, m_Setting.Fields,m_Setting.IsRead))
             {
                 if (dig.ShowDialog() == DialogResult.OK)
                 {
