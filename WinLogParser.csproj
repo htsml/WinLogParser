@@ -56,6 +56,7 @@
     <Compile Include="CommandSettingsForm.Designer.cs">
       <DependentUpon>CommandSettingsForm.cs</DependentUpon>
     </Compile>
+    <Compile Include="Define\Define.cs" />
     <Compile Include="FilterForm.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -81,6 +82,12 @@
     <Compile Include="Static\Clipboard.cs" />
     <Compile Include="Static\LogParser.cs" />
     <Compile Include="Static\SettingsStorage.cs" />
+    <Compile Include="Utils\FilterLoadSelection.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Utils\FilterLoadSelection.Designer.cs">
+      <DependentUpon>FilterLoadSelection.cs</DependentUpon>
+    </Compile>
     <Compile Include="Utils\HighlightPrompt.cs" />
     <Compile Include="Utils\Prompt.cs" />
     <EmbeddedResource Include="CommandSettingsForm.resx">
@@ -102,6 +109,9 @@
       <DependentUpon>Resources.resx</DependentUpon>
       <DesignTime>True</DesignTime>
     </Compile>
+    <EmbeddedResource Include="Utils\FilterLoadSelection.resx">
+      <DependentUpon>FilterLoadSelection.cs</DependentUpon>
+    </EmbeddedResource>
     <None Include="packages.config" />
     <None Include="Properties\Settings.settings">
       <Generator>SettingsSingleFileGenerator</Generator>

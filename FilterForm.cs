@@ -1,11 +1,16 @@
-﻿using WinLogParser.Model;
-using WinLogParser;
-using System;
+﻿using System;
 using System.Collections.Generic;
+using System.Collections.Concurrent;
 using System.IO;
 using System.Linq;
 using System.Windows.Forms;
 using System.Reflection;
+using System.Threading.Tasks;
+
+using WinLogParser;
+using WinLogParser.Utils;
+using WinLogParser.Model;
+using WinLogParser.Define;
 
 namespace WinLogParser
 {
@@ -13,6 +18,8 @@ namespace WinLogParser
     {
         private CmdSetting m_Setting;
         private bool m_IsAutoScroll = false;
+        private bool m_IsLoadingLog = false;
+        private bool m_IsColumnInit = false;
 
         public FilterForm()
         {
@@ -112,13 +119,67 @@ namespace WinLogParser
                 m_Setting = SettingsStorage.LoadFromFile(filePath);
                 this.Text = m_Setting.Title;
                 GridUpdate();
+
+                m_IsColumnInit = true;
             }
             catch (Exception ex)
             {
                 MessageBox.Show(ex.Message);
             }
         }
+        private async Task LoadLogFromFile(string filePath)
+        {
+            try
+            {
+                if(m_IsLoadingLog)
+                {
+                    MessageBox.Show("Logs are currently loading.");
+                    return;
+                }
 
+                if(m_IsColumnInit == false)
+                {
+                    MessageBox.Show("The column has not been initialized. Please initialize it and try loading again.");
+                    return;
+                }
+
+                m_IsLoadingLog = true;
+
+                var lines = new BlockingCollection<string>(boundedCapacity: 10000);
+
+                Task readerTask = Task.Run(() => 
+                {
+                    using (var fs = new FileStream(filePath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
+                    using (var reader = new StreamReader(fs))
+                    {
+                        while (!reader.EndOfStream)
+                        {
+                            lines.Add(reader.ReadLine());
+                        }
+                    }
+
+                    lines.CompleteAdding();
+                });
+
+                var processorTask = Enumerable.Range(0, Environment.ProcessorCount).Select(_ =>
+                Task.Run(() =>
+                {
+                    foreach(var line in lines.GetConsumingEnumerable())
+                    {
+                        AppendLog(line);
+                    }
+                })
+                ).ToArray();
+
+                await Task.WhenAll(processorTask);
+
+                m_IsLoadingLog = false;
+            }
+            catch(Exception ex)
+            {
+                MessageBox.Show(ex.Message);
+            }
+        }
         private void AddLogAndScroll(List<string> row)
         {
             int rowIndex = dataGridView.Rows.Add(row.ToArray());
@@ -158,7 +219,6 @@ namespace WinLogParser
             }
         }
 
-
         private void CmdSave_TSBtn_Click(object sender, EventArgs e)
         {
             using (SaveFileDialog sfd = new SaveFileDialog())
@@ -172,11 +232,29 @@ namespace WinLogParser
 
         private void CmdLoad_TSBtn_Click(object sender, EventArgs e)
         {
-            using (OpenFileDialog ofd = new OpenFileDialog())
+            using(var filterLoadSelectionForm = new FilterLoadSelection())
             {
-                ofd.Filter = "JSON File (*.json)|*.json";
-                if (ofd.ShowDialog() == DialogResult.OK)
-                    LoadSettingsFromFile(ofd.FileName);
+                filterLoadSelectionForm.ShowDialog();
+                ELoadSelectOptionType selected = filterLoadSelectionForm.LoadSelectOptionType;
+
+                if(selected == Define.ELoadSelectOptionType.LOG)
+                {
+                    using (OpenFileDialog ofd = new OpenFileDialog())
+                    {
+                        ofd.Filter = "Text and Log Files (*.txt;*.log)|*.txt;*.log";
+                        if (ofd.ShowDialog() == DialogResult.OK)
+                            LoadLogFromFile(ofd.FileName);
+                    }
+                }
+                else
+                {
+                    using (OpenFileDialog ofd = new OpenFileDialog())
+                    {
+                        ofd.Filter = "JSON File (*.json)|*.json";
+                        if (ofd.ShowDialog() == DialogResult.OK)
+                            LoadSettingsFromFile(ofd.FileName);
+                    }
+                }
             }
         }
 

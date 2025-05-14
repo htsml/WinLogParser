@@ -180,6 +180,7 @@ namespace WinLogParser
             this.MinimizeBox = false;
             this.Name = "CommandSettingsForm";
             this.ShowIcon = false;
+            this.StartPosition = System.Windows.Forms.FormStartPosition.CenterParent;
             this.Text = "CommandSettingsForm";
             ((System.ComponentModel.ISupportInitialize)(this.dataGridView)).EndInit();
             this.panel1.ResumeLayout(false);
