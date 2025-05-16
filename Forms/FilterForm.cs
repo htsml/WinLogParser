@@ -16,14 +16,20 @@ namespace WinLogParser
 {
     public partial class FilterForm : Form
     {
-        private CmdSetting m_Setting;
         private bool m_IsAutoScroll = false;
-        private bool m_IsLoadingLog = false;
         private bool m_IsColumnInit = false;
+        private bool m_IsLoadingLog = false;
+
+        private CmdSetting m_Setting;
+
+        private EFilterSettingSelectOptionType m_CurrentSettingSelectOptionType;
 
         public FilterForm()
         {
             InitializeComponent();
+
+            m_CurrentSettingSelectOptionType = EFilterSettingSelectOptionType.NONE;
+
             InitializeSplitButtons();
 
             EnableDoubleBuffering(dataGridView);
@@ -34,25 +40,20 @@ namespace WinLogParser
             if (m_Setting == null)
                 return;
 
-            if (LogParser.TryParseLine(line, m_Setting, out var row))
+            switch(m_CurrentSettingSelectOptionType)
             {
-                if (dataGridView.InvokeRequired)
-                {
-                    dataGridView.Invoke(new MethodInvoker(() =>
-                    {
-                        if (!m_IsAutoScroll)
-                            dataGridView.Rows.Add(row.ToArray());
-                        else
-                            AddLogAndScroll(row);
-                    }));
-                }
-                else
-                {
-                    if (!m_IsAutoScroll)
-                        dataGridView.Rows.Add(row.ToArray());
-                    else
-                        AddLogAndScroll(row);
-                }
+                case EFilterSettingSelectOptionType.HEX:
+                    if (LogParser.TryParseHexLogLine(line, m_Setting, out List<string> hexRow))
+                        AddLogLine(hexRow);
+                    break;
+                case EFilterSettingSelectOptionType.DIRECTION:
+                    if (LogParser.TryParseDirectionLogLine(line, m_Setting, out List<string> directionRow))
+                        AddLogLine(directionRow);
+                    break;
+                case EFilterSettingSelectOptionType.MACHINE:
+                    if(LogParser.TryParseMachineCommand(line, m_Setting, out List<string> machineRow))
+                        AddLogLine(machineRow);
+                    break;
             }
         }
 
@@ -73,14 +74,20 @@ namespace WinLogParser
 
         private void InitializeSettings()
         {
-            if(m_Setting == null)
+            if (m_Setting == null)
             {
                 m_Setting = new CmdSetting()
                 {
+                    To = "",
                     Title = "",
-                    Fields = new List<Field>(),
+                    CMD = "",
+                    From = "",
                     CmdIndex = "",
-                    CmdValue = ""
+                    CmdValue = "",
+                    IsDirection = false,
+                    IsRead = false,
+
+                    Fields = new List<Field>(),
                 };
             }
         }
@@ -99,18 +106,15 @@ namespace WinLogParser
             foreach (var field in m_Setting.Fields)
                 dataGridView.Columns.Add(field.FieldName, field.FieldName);
         }
-
         private void Clean()
         {
             dataGridView.Columns.Clear();
             dataGridView.Rows.Clear();
         }
-
         private void SaveSettingsToFile(string filePath)
         {
             SettingsStorage.SaveToFile(m_Setting, filePath);
         }
-
         private void LoadSettingsFromFile(string filePath)
         {
             try
@@ -118,6 +122,9 @@ namespace WinLogParser
                 Clean();
                 m_Setting = SettingsStorage.LoadFromFile(filePath);
                 this.Text = m_Setting.Title;
+
+                m_CurrentSettingSelectOptionType = m_Setting.FilterSettingSelectOptionType;
+
                 GridUpdate();
 
                 m_IsColumnInit = true;
@@ -131,13 +138,13 @@ namespace WinLogParser
         {
             try
             {
-                if(m_IsLoadingLog)
+                if (m_IsLoadingLog)
                 {
                     MessageBox.Show("Logs are currently loading.");
                     return;
                 }
 
-                if(m_IsColumnInit == false)
+                if (m_IsColumnInit == false)
                 {
                     MessageBox.Show("The column has not been initialized. Please initialize it and try loading again.");
                     return;
@@ -147,7 +154,7 @@ namespace WinLogParser
 
                 var lines = new BlockingCollection<string>(boundedCapacity: 10000);
 
-                Task readerTask = Task.Run(() => 
+                Task readerTask = Task.Run(() =>
                 {
                     using (var fs = new FileStream(filePath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
                     using (var reader = new StreamReader(fs))
@@ -164,7 +171,7 @@ namespace WinLogParser
                 var processorTask = Enumerable.Range(0, Environment.ProcessorCount).Select(_ =>
                 Task.Run(() =>
                 {
-                    foreach(var line in lines.GetConsumingEnumerable())
+                    foreach (var line in lines.GetConsumingEnumerable())
                     {
                         AppendLog(line);
                     }
@@ -175,9 +182,29 @@ namespace WinLogParser
 
                 m_IsLoadingLog = false;
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 MessageBox.Show(ex.Message);
+            }
+        }
+        private void AddLogLine(List<string> row)
+        {
+            if (dataGridView.InvokeRequired)
+            {
+                dataGridView.Invoke(new MethodInvoker(() =>
+                {
+                    if (!m_IsAutoScroll)
+                        dataGridView.Rows.Add(row.ToArray());
+                    else
+                        AddLogAndScroll(row);
+                }));
+            }
+            else
+            {
+                if (!m_IsAutoScroll)
+                    dataGridView.Rows.Add(row.ToArray());
+                else
+                    AddLogAndScroll(row);
             }
         }
         private void AddLogAndScroll(List<string> row)
@@ -192,7 +219,7 @@ namespace WinLogParser
                 targetIndex = Math.Max(0, dataGridView.RowCount - visibleRows);
                 dataGridView.FirstDisplayedScrollingRowIndex = targetIndex;
             }
-            catch(Exception e)
+            catch (Exception e)
             {
                 Console.WriteLine($"AddLogAndScroll_____{e.Message}");
             }
@@ -200,25 +227,97 @@ namespace WinLogParser
 
         private void OpenCMDSettingForm_TSBtn_Click(object sender, EventArgs e)
         {
-            if(m_Setting == null)
+            bool isFieldClean = false;
+            if (m_Setting == null)
                 InitializeSettings();
-            using (var dig = new CommandSettingsForm(m_Setting.Title, m_Setting.CmdValue, m_Setting.CmdIndex, m_Setting.Fields,m_Setting.IsRead))
-            {
-                if (dig.ShowDialog() == DialogResult.OK)
-                {
-                    m_Setting = new CmdSetting
-                    {
-                        Title = dig.Title,
-                        CmdValue = dig.CmdValue,
-                        CmdIndex = dig.CmdIndex,
-                        Fields = dig.Fields.ToList()
-                    };
 
-                    GridUpdate();
+            using (var filterSelectSettingForm = new FilterSettingSelection())
+            {
+                filterSelectSettingForm.ShowDialog();
+
+                EFilterSettingSelectOptionType settingSelectOptionType = filterSelectSettingForm.FilterSettingSelectOptionType;
+
+                if (m_CurrentSettingSelectOptionType != settingSelectOptionType)
+                    isFieldClean = true;
+
+                if (settingSelectOptionType == EFilterSettingSelectOptionType.HEX)
+                {
+                    using (var dig = new HexCmdSettingsForm(m_Setting.Title, m_Setting.CmdValue, m_Setting.CmdIndex, m_Setting.Fields, m_Setting.IsRead))
+                    {
+                        if (dig.ShowDialog() == DialogResult.OK)
+                        {
+                            m_Setting = new CmdSetting
+                            {
+                                Title = dig.Title,
+                                CmdValue = dig.CmdValue,
+                                CmdIndex = dig.CmdIndex,
+                                Fields = dig.Fields.ToList(),
+                                FilterSettingSelectOptionType = dig.FilterSettingSelectOptionType,
+                            };
+
+                            if (isFieldClean)
+                                dig.Clean();
+
+                            m_CurrentSettingSelectOptionType = EFilterSettingSelectOptionType.HEX;
+
+                            GridUpdate();
+                        }
+                    }
                 }
+                else if(settingSelectOptionType == EFilterSettingSelectOptionType.DIRECTION)
+                {
+                    using (var dig = new DirectionCmdSettingsForm(m_Setting.Title, m_Setting.From, m_Setting.To, m_Setting.CMD, m_Setting.Fields))
+                    {
+                        if (dig.ShowDialog() == DialogResult.OK)
+                        {
+                            m_Setting = new CmdSetting
+                            {
+                                Title = dig.Title,
+                                CMD = dig.CMD,
+                                From = dig.From,
+                                To = dig.To,
+                                IsDirection = dig.IsDirection,
+                                Fields = dig.Fields.ToList(),
+                                FilterSettingSelectOptionType = dig.FilterSettingSelectOptionType,
+                            };
+
+                            if (isFieldClean)
+                                dig.Clean();
+
+                            m_CurrentSettingSelectOptionType = EFilterSettingSelectOptionType.DIRECTION;
+
+                            GridUpdate();
+                        }
+                    }
+                }
+                else if(settingSelectOptionType == EFilterSettingSelectOptionType.MACHINE)
+                {
+                    using (var dig = new MachineCmdSettingsForm(m_Setting.Title, m_Setting.From,m_Setting.CMD,m_Setting.Fields))
+                    {
+                        if(dig.ShowDialog() == DialogResult.OK)
+                        {
+                            m_Setting = new CmdSetting()
+                            {
+                                Title = dig.Title,
+                                From = dig.From,
+                                CMD = dig.CMD,
+                                Fields = dig.Fields.ToList(),
+                                FilterSettingSelectOptionType = dig.FilterSettingSelectOptionType,
+                            };
+                        }
+
+                        if (isFieldClean)
+                            dig.Clean();
+
+                        m_CurrentSettingSelectOptionType = EFilterSettingSelectOptionType.MACHINE;
+
+                        GridUpdate();
+                    }
+                }
+
+                this.Text = m_Setting.Title;
             }
         }
-
         private void CmdSave_TSBtn_Click(object sender, EventArgs e)
         {
             using (SaveFileDialog sfd = new SaveFileDialog())
@@ -228,16 +327,14 @@ namespace WinLogParser
                     SaveSettingsToFile(sfd.FileName);
             }
         }
-
-
         private void CmdLoad_TSBtn_Click(object sender, EventArgs e)
         {
-            using(var filterLoadSelectionForm = new FilterLoadSelection())
+            using (var filterLoadSelectionForm = new FilterLoadSelection(m_IsColumnInit))
             {
                 filterLoadSelectionForm.ShowDialog();
-                ELoadSelectOptionType selected = filterLoadSelectionForm.LoadSelectOptionType;
+                EFilterLoadSelectOptionType selected = filterLoadSelectionForm.FilterLoadSelectOptionType;
 
-                if(selected == Define.ELoadSelectOptionType.LOG)
+                if (selected == EFilterLoadSelectOptionType.LOG)
                 {
                     using (OpenFileDialog ofd = new OpenFileDialog())
                     {
@@ -246,7 +343,7 @@ namespace WinLogParser
                             LoadLogFromFile(ofd.FileName);
                     }
                 }
-                else
+                else if(selected == EFilterLoadSelectOptionType.COLUMNS)
                 {
                     using (OpenFileDialog ofd = new OpenFileDialog())
                     {

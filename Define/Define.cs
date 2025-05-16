@@ -1,8 +1,16 @@
 ﻿namespace WinLogParser.Define
 {
-    public enum ELoadSelectOptionType
+    public enum EFilterLoadSelectOptionType
     {
+        NONE,
         LOG,
         COLUMNS,
+    }
+    public enum EFilterSettingSelectOptionType
+    {
+        NONE,
+        HEX,
+        DIRECTION,
+        MACHINE
     }
 }

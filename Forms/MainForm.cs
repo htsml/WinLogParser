@@ -17,15 +17,34 @@ namespace WinLogParser
 
         private LogStream m_LogStreamService;
 
+        private int m_PageSize = 500;
+        private int m_PageIndex = 0;
+        private int m_DisplayStartIndex = 0;
+        private int m_NewTotalPages = 0;
+
+        private bool m_isDirty = false;
         private bool m_IsInitialized = false;
         private bool m_IsAutoScroll = false;
+
+        private string m_FormattedLine = "";
+
+        private List<string> m_AllLogs = new List<string>();
+
+        private Timer m_UiRefreshTimer;
+
+        private int m_TotalPages
+        {
+            get { return (int)Math.Ceiling((double)m_AllLogs.Count / m_PageSize); }
+        }
 
         public MainForm()
         {
             InitializeComponent();
             InitializeSplitButtons();
 
-            EnableDoubleBuffering(dataGridViewAll);
+            InitializeDataGridView();
+
+            InitializeTimer();
         }
 
         private void InitializeSplitButtons()
@@ -34,6 +53,8 @@ namespace WinLogParser
             {
                 m_IsAutoScroll = true;
                 ScrollMode_SplitBtn.Text = "Auto";
+
+                BeginInvoke((MethodInvoker)(() => ScrollToBottom()));
             });
 
             ScrollMode_SplitBtn.DropDownItems.Add("Manual", null, (s, e) =>
@@ -42,13 +63,39 @@ namespace WinLogParser
                 ScrollMode_SplitBtn.Text = "Manual";
             });
         }
-        private void EnableDoubleBuffering(DataGridView dgv)
+        private void InitializeDataGridView()
         {
-            typeof(DataGridView).InvokeMember("DoubleBuffered",
-                                                                          BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.SetProperty,
-                                                                          null, dgv, new object[] { true });
+            dataGridViewAll.VirtualMode = true;
+
+            dataGridViewAll.RowCount = 1;
+
+            dataGridViewAll.Rows.Clear();
+            dataGridViewAll.Columns.Clear();
+
+            dataGridViewAll.CellValueNeeded += delegate (object sender, DataGridViewCellValueEventArgs e)
+            {
+                int index = m_PageIndex * m_PageSize + e.RowIndex;
+                if (index >= 0 && index < m_AllLogs.Count)
+                    e.Value = m_AllLogs[index];
+                else
+                    e.Value = "";
+            };
+
+            dataGridViewAll.Scroll += (s, e) =>
+            {
+                if (m_IsAutoScroll == false && dataGridViewAll.FirstDisplayedScrollingRowIndex == 0 && m_DisplayStartIndex > 0)
+                {
+                    m_DisplayStartIndex = Math.Max(0, m_DisplayStartIndex - m_PageSize);
+                    dataGridViewAll.RowCount = Math.Min(m_PageSize, m_AllLogs.Count - m_DisplayStartIndex);
+                    dataGridViewAll.Invalidate();
+                }
+            };
+
+            UpdatePage();
+
+            EnableDoubleBuffering(dataGridViewAll);
         }
-        private void InitializeLogGrid()
+        private void InitializeDataGridViewDisplay()
         {
             dataGridViewAll.Columns.Clear();
 
@@ -83,35 +130,103 @@ namespace WinLogParser
 
             m_IsInitialized = true;
         }
+        private void InitializeTimer()
+        {
+            m_UiRefreshTimer = new Timer();
+            m_UiRefreshTimer.Interval = 200; // 200ms 간격으로 UI 업데이트
 
+            m_UiRefreshTimer.Tick += (s, e) =>
+            {
+                if (m_IsInitialized == false)
+                    return;
+
+                m_DisplayStartIndex = Math.Max(0, m_AllLogs.Count - m_PageSize);
+                dataGridViewAll.Invalidate();
+
+                if (m_IsAutoScroll)
+                    BeginInvoke((MethodInvoker)(() => ScrollToBottom()));
+
+                if(m_isDirty)
+                {
+                    LoadPage(m_NewTotalPages);
+                    m_isDirty = false;
+                }
+            };
+
+            m_UiRefreshTimer.Start();
+        }
         private void HandleNewLogLine(string line)
         {
             if (!m_IsInitialized)
-                InitializeLogGrid();
+                InitializeDataGridViewDisplay();
 
-            string formattedLine = m_InsertLineManager.FormatLine(line);
+            m_FormattedLine = m_InsertLineManager.FormatLine(line);
 
             foreach (var form in m_FilterForms)
                 form.AppendLog(line);
 
-            AddLog(formattedLine);
+            AddLog(m_FormattedLine);
         }
 
         private void AddLog(string line)
         {
-            dataGridViewAll.Invoke((MethodInvoker)(() =>
-            {
-                int rowIndex = dataGridViewAll.Rows.Add(line);
+            int oldTotalPages = m_TotalPages;
 
-                if (m_IsAutoScroll)
-                {
-                    int visibleRows = dataGridViewAll.DisplayedRowCount(false);
-                    int targetIndex = Math.Max(0, dataGridViewAll.RowCount - visibleRows);
-                    dataGridViewAll.FirstDisplayedScrollingRowIndex = targetIndex;
-                }
-            }));
+            m_AllLogs.Add(line);
+
+            m_NewTotalPages = (int)Math.Ceiling((double)m_AllLogs.Count / m_PageSize);
+
+            if (m_PageIndex == oldTotalPages - 1)
+                m_isDirty = true;
+            else
+                UpdatePage();
         }
+        private void ScrollToBottom()
+        {
+            try
+            {
+                if (dataGridViewAll.RowCount > 0)
+                {
+                    int lastIndex = dataGridViewAll.RowCount - 1;
+                    dataGridViewAll.FirstDisplayedScrollingRowIndex = lastIndex;
+                }
+            }
+            catch
+            {
+                // to do...
+            }
+        }
+        private void EnableDoubleBuffering(DataGridView dgv)
+        {
+            typeof(DataGridView).InvokeMember("DoubleBuffered",
+                BindingFlags.NonPublic |
+                BindingFlags.Instance |
+                BindingFlags.SetProperty,
+                null, dgv, new object[] { true });
+        }
+        private void LoadPage(int pageNumber)
+        {
+            int targetIndex = Math.Max(0, Math.Min(pageNumber - 1, Math.Max(0, m_TotalPages - 1)));
+            m_PageIndex = targetIndex;
 
+            int startIndex = m_PageIndex * m_PageSize;
+            int visibleCount = Math.Min(m_PageSize, m_AllLogs.Count - startIndex);
+
+            dataGridViewAll.RowCount = visibleCount;
+            dataGridViewAll.Invalidate();
+
+            UpdatePage();
+        }
+        private void UpdatePage()
+        {
+            if(InvokeRequired)
+            {
+                BeginInvoke((MethodInvoker)UpdatePage);
+                return;
+            }
+
+            Page_TSlbl.Text = $"{m_PageIndex + 1} / {Math.Max(1, m_TotalPages)}";
+        }
         private void Open_TSBtn_Click(object sender, EventArgs e)
         {
             m_IsInitialized = false;
@@ -176,6 +291,26 @@ namespace WinLogParser
         private void dataGridViewAll_CellFormatting(object sender, DataGridViewCellFormattingEventArgs e)
         {
             m_HighlightManager.ApplyHighlight(e);
+        }
+
+        private void Left_TSBtn_Click(object sender, EventArgs e)
+        {
+            LoadPage(m_PageIndex);
+        }
+
+        private void Right_TSBtn_Click(object sender, EventArgs e)
+        {
+            LoadPage(m_PageIndex + 2);
+        }
+
+        private void PageInputText_TSTxtbox_KeyDown(object sender, KeyEventArgs e)
+        {
+            if (e.KeyCode == Keys.Enter)
+            {
+                int page;
+                if (int.TryParse(PageInputText_TSTxtbox.Text, out page))
+                    LoadPage(page);
+            }
         }
     }
 }

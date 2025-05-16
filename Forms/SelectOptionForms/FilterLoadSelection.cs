@@ -13,21 +13,23 @@ namespace WinLogParser.Utils
 {
     public partial class FilterLoadSelection : Form
     {
-        public ELoadSelectOptionType LoadSelectOptionType { get; private set; }
-        public FilterLoadSelection()
+        public EFilterLoadSelectOptionType FilterLoadSelectOptionType { get; private set; }        
+        public FilterLoadSelection(bool isLogButtonEnable = true)
         {
             InitializeComponent();
+
+            LoadLog_Btn.Enabled = isLogButtonEnable;
         }
 
         private void LoadLog_Btn_Click(object sender, EventArgs e)
         {
-            LoadSelectOptionType = ELoadSelectOptionType.LOG;
+            FilterLoadSelectOptionType = EFilterLoadSelectOptionType.LOG;
             this.Close();
         }
 
         private void LoadColumns_Btn_Click(object sender, EventArgs e)
         {
-            LoadSelectOptionType = ELoadSelectOptionType.COLUMNS;
+            FilterLoadSelectOptionType = EFilterLoadSelectOptionType.COLUMNS;
             this.Close();
         }
     }

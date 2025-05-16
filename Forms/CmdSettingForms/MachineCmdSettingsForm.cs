@@ -2,64 +2,72 @@
 using System;
 using System.Collections.Generic;
 using System.Windows.Forms;
+using WinLogParser.Define;
 
 namespace WinLogParser
 {
-    public partial class CommandSettingsForm : Form
+    public partial class MachineCmdSettingsForm : Form
     {
         public string Title { get; private set; }
-        public string CmdValue { get; private set; }
-        public string CmdIndex { get; private set; }
-        public bool IsRead { get; private set; }
-
+        public string From { get; private set; }
+        public string CMD { get; private set; }
+        public EFilterSettingSelectOptionType FilterSettingSelectOptionType { get; private set; }
         private readonly List<Field> m_Fields = new List<Field>();
         public IReadOnlyList<Field> Fields => m_Fields.AsReadOnly();
 
-        public CommandSettingsForm(string title,string cmdValue, string cmdIndex, IEnumerable<Field> fields,bool isRead)
+        public MachineCmdSettingsForm(string title,string from, string cmd, IEnumerable<Field> fields)
         {
             InitializeComponent();
 
+            FilterSettingSelectOptionType = EFilterSettingSelectOptionType.MACHINE;
+
             Title = title ?? "";
-            CmdValue = cmdValue ?? "";
-            CmdIndex = cmdIndex ?? "";
-            IsRead = isRead;
+            From = from ?? "";
+            CMD = cmd ?? "";
 
             Title_TxtBox.Text = Title;
-            Cmd_Value_TxtBox.Text = CmdValue;
-            Cmd_Index_TxtBox.Text = CmdIndex;
-            IsRead_CheckBox.Checked = IsRead;
+            From_TxtBox.Text = From;
+            Cmd_TxtBox.Text = CMD;
 
             InitializeFieldGrid();
 
             foreach (var field in fields ?? Array.Empty<Field>())
-                dataGridView.Rows.Add(field.FieldName, field.ByteCount);
+                dataGridView.Rows.Add(field.FieldName, field.Count);
         }
-
+        public void Clean()
+        {
+            m_Fields.Clear();
+        }
         private void InitializeFieldGrid()
         {
             dataGridView.Columns.Add("FieldName", "Field Name");
-            dataGridView.Columns.Add("ByteCount", "Byte Count");
-            dataGridView.Columns["ByteCount"].ValueType = typeof(int);
+            dataGridView.Columns.Add("Count", "Count");
+            dataGridView.Columns["Count"].ValueType = typeof(int);
         }
 
         private void Apply_Btn_Click(object sender, EventArgs e)
         {
             List<Field> newFields = new List<Field>();
 
-            bool isRead = IsRead_CheckBox.Checked;
             string title = Title_TxtBox.Text.Trim();
-            string newCmdValue = Cmd_Value_TxtBox.Text.Trim();
-            string newCmdIndex = Cmd_Index_TxtBox.Text.Trim();
+            string from = From_TxtBox.Text.Trim();
+            string cmd = Cmd_TxtBox.Text.Trim();
 
-            if (string.IsNullOrWhiteSpace(newCmdValue))
+            if (string.IsNullOrWhiteSpace(title))
             {
-                MessageBox.Show("Please enter the CMD Value.");
+                MessageBox.Show("Please enter the 'Title' Text.");
                 return;
             }
 
-            if (string.IsNullOrWhiteSpace(newCmdIndex))
+            if (string.IsNullOrWhiteSpace(from))
             {
-                MessageBox.Show("Please enter the CMD Index.");
+                MessageBox.Show("Please enter the 'From' Text.");
+                return;
+            }
+
+            if (string.IsNullOrWhiteSpace(cmd))
+            {
+                MessageBox.Show("Please enter the 'CMD' Text.");
                 return;
             }
 
@@ -74,23 +82,24 @@ namespace WinLogParser
                     return;
                 }
 
-                if (!int.TryParse(row.Cells["ByteCount"].Value?.ToString(), out int byteCount))
+                if (!int.TryParse(row.Cells["Count"].Value?.ToString(), out int byteCount))
                 {
-                    MessageBox.Show($"Invalid byte count for field '{fieldName}'.");
+                    MessageBox.Show($"Invalid count for field '{fieldName}'.");
                     return;
                 }
 
                 newFields.Add(new Field
                 {
                     FieldName = fieldName,
-                    ByteCount = byteCount
+                    Count = byteCount
                 });
             }
 
             Title = title;
-            CmdValue = newCmdValue;
-            CmdIndex = newCmdIndex;
-            IsRead = isRead;
+            From = from;
+            CMD = cmd;
+
+            FilterSettingSelectOptionType = EFilterSettingSelectOptionType.MACHINE;
 
             m_Fields.Clear();
             m_Fields.AddRange(newFields);

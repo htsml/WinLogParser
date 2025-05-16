@@ -33,7 +33,7 @@ namespace WinLogParser
         {
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(MainForm));
             System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle1 = new System.Windows.Forms.DataGridViewCellStyle();
-            this.toolStrip1 = new System.Windows.Forms.ToolStrip();
+            this.toolStrip = new System.Windows.Forms.ToolStrip();
             this.Open_TSBtn = new System.Windows.Forms.ToolStripButton();
             this.toolStripSeparator2 = new System.Windows.Forms.ToolStripSeparator();
             this.Highlighting_TSBtn = new System.Windows.Forms.ToolStripButton();
@@ -41,17 +41,23 @@ namespace WinLogParser
             this.ScrollMode_SplitBtn = new System.Windows.Forms.ToolStripSplitButton();
             this.toolStripSeparator3 = new System.Windows.Forms.ToolStripSeparator();
             this.NewLogFilterForm_TSBtn = new System.Windows.Forms.ToolStripButton();
-            this.toolStripSeparator1 = new System.Windows.Forms.ToolStripSeparator();
+            this.toolStripSeparator4 = new System.Windows.Forms.ToolStripSeparator();
             this.RowCopy_TSBtn = new System.Windows.Forms.ToolStripButton();
+            this.toolStripSeparator1 = new System.Windows.Forms.ToolStripSeparator();
+            this.Right_TSBtn = new System.Windows.Forms.ToolStripButton();
+            this.Page_TSlbl = new System.Windows.Forms.ToolStripLabel();
+            this.PageInputText_TSTxtbox = new System.Windows.Forms.ToolStripTextBox();
+            this.Left_TSBtn = new System.Windows.Forms.ToolStripButton();
+            this.toolStripSeparator5 = new System.Windows.Forms.ToolStripSeparator();
             this.dataGridViewAll = new System.Windows.Forms.DataGridView();
-            this.toolStrip1.SuspendLayout();
+            this.toolStrip.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.dataGridViewAll)).BeginInit();
             this.SuspendLayout();
             // 
-            // toolStrip1
+            // toolStrip
             // 
-            this.toolStrip1.ImageScalingSize = new System.Drawing.Size(20, 20);
-            this.toolStrip1.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.toolStrip.ImageScalingSize = new System.Drawing.Size(20, 20);
+            this.toolStrip.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.Open_TSBtn,
             this.toolStripSeparator2,
             this.Highlighting_TSBtn,
@@ -59,13 +65,19 @@ namespace WinLogParser
             this.ScrollMode_SplitBtn,
             this.toolStripSeparator3,
             this.NewLogFilterForm_TSBtn,
+            this.toolStripSeparator4,
+            this.RowCopy_TSBtn,
             this.toolStripSeparator1,
-            this.RowCopy_TSBtn});
-            this.toolStrip1.Location = new System.Drawing.Point(0, 0);
-            this.toolStrip1.Name = "toolStrip1";
-            this.toolStrip1.Size = new System.Drawing.Size(914, 27);
-            this.toolStrip1.TabIndex = 0;
-            this.toolStrip1.Text = "toolStrip1";
+            this.Right_TSBtn,
+            this.Page_TSlbl,
+            this.PageInputText_TSTxtbox,
+            this.Left_TSBtn,
+            this.toolStripSeparator5});
+            this.toolStrip.Location = new System.Drawing.Point(0, 0);
+            this.toolStrip.Name = "toolStrip";
+            this.toolStrip.Size = new System.Drawing.Size(914, 27);
+            this.toolStrip.TabIndex = 0;
+            this.toolStrip.Text = "toolStrip1";
             // 
             // Open_TSBtn
             // 
@@ -126,10 +138,10 @@ namespace WinLogParser
             this.NewLogFilterForm_TSBtn.Text = "New Filter";
             this.NewLogFilterForm_TSBtn.Click += new System.EventHandler(this.NewLogFilterForm_TSBtn_Click);
             // 
-            // toolStripSeparator1
+            // toolStripSeparator4
             // 
-            this.toolStripSeparator1.Name = "toolStripSeparator1";
-            this.toolStripSeparator1.Size = new System.Drawing.Size(6, 27);
+            this.toolStripSeparator4.Name = "toolStripSeparator4";
+            this.toolStripSeparator4.Size = new System.Drawing.Size(6, 27);
             // 
             // RowCopy_TSBtn
             // 
@@ -140,9 +152,62 @@ namespace WinLogParser
             this.RowCopy_TSBtn.Name = "RowCopy_TSBtn";
             this.RowCopy_TSBtn.Size = new System.Drawing.Size(48, 24);
             this.RowCopy_TSBtn.Text = "Copy";
+            this.RowCopy_TSBtn.Click += new System.EventHandler(this.RowCopy_TSBtn_Click);
+            // 
+            // toolStripSeparator1
+            // 
+            this.toolStripSeparator1.Alignment = System.Windows.Forms.ToolStripItemAlignment.Right;
+            this.toolStripSeparator1.Name = "toolStripSeparator1";
+            this.toolStripSeparator1.Size = new System.Drawing.Size(6, 27);
+            // 
+            // Right_TSBtn
+            // 
+            this.Right_TSBtn.Alignment = System.Windows.Forms.ToolStripItemAlignment.Right;
+            this.Right_TSBtn.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Text;
+            this.Right_TSBtn.Image = ((System.Drawing.Image)(resources.GetObject("Right_TSBtn.Image")));
+            this.Right_TSBtn.ImageTransparentColor = System.Drawing.Color.Magenta;
+            this.Right_TSBtn.Name = "Right_TSBtn";
+            this.Right_TSBtn.Size = new System.Drawing.Size(29, 24);
+            this.Right_TSBtn.Text = ">";
+            this.Right_TSBtn.ToolTipText = "페이지를 오른쪽으로 이동합니다.";
+            this.Right_TSBtn.Click += new System.EventHandler(this.Right_TSBtn_Click);
+            // 
+            // Page_TSlbl
+            // 
+            this.Page_TSlbl.Alignment = System.Windows.Forms.ToolStripItemAlignment.Right;
+            this.Page_TSlbl.Name = "Page_TSlbl";
+            this.Page_TSlbl.Size = new System.Drawing.Size(28, 24);
+            this.Page_TSlbl.Text = "/ 0";
+            // 
+            // PageInputText_TSTxtbox
+            // 
+            this.PageInputText_TSTxtbox.Alignment = System.Windows.Forms.ToolStripItemAlignment.Right;
+            this.PageInputText_TSTxtbox.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
+            this.PageInputText_TSTxtbox.Name = "PageInputText_TSTxtbox";
+            this.PageInputText_TSTxtbox.Size = new System.Drawing.Size(44, 27);
+            this.PageInputText_TSTxtbox.KeyDown += new System.Windows.Forms.KeyEventHandler(this.PageInputText_TSTxtbox_KeyDown);
+            // 
+            // Left_TSBtn
+            // 
+            this.Left_TSBtn.Alignment = System.Windows.Forms.ToolStripItemAlignment.Right;
+            this.Left_TSBtn.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Text;
+            this.Left_TSBtn.Image = ((System.Drawing.Image)(resources.GetObject("Left_TSBtn.Image")));
+            this.Left_TSBtn.ImageTransparentColor = System.Drawing.Color.Magenta;
+            this.Left_TSBtn.Name = "Left_TSBtn";
+            this.Left_TSBtn.Size = new System.Drawing.Size(29, 24);
+            this.Left_TSBtn.Text = "<";
+            this.Left_TSBtn.ToolTipText = "페이지를 왼쪽으로 이동합니다.";
+            this.Left_TSBtn.Click += new System.EventHandler(this.Left_TSBtn_Click);
+            // 
+            // toolStripSeparator5
+            // 
+            this.toolStripSeparator5.Alignment = System.Windows.Forms.ToolStripItemAlignment.Right;
+            this.toolStripSeparator5.Name = "toolStripSeparator5";
+            this.toolStripSeparator5.Size = new System.Drawing.Size(6, 27);
             // 
             // dataGridViewAll
             // 
+            this.dataGridViewAll.AllowUserToDeleteRows = false;
             this.dataGridViewAll.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
             this.dataGridViewAll.Dock = System.Windows.Forms.DockStyle.Fill;
             this.dataGridViewAll.Location = new System.Drawing.Point(0, 27);
@@ -168,14 +233,14 @@ namespace WinLogParser
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(914, 450);
             this.Controls.Add(this.dataGridViewAll);
-            this.Controls.Add(this.toolStrip1);
+            this.Controls.Add(this.toolStrip);
             this.Margin = new System.Windows.Forms.Padding(3, 2, 3, 2);
             this.Name = "MainForm";
             this.ShowIcon = false;
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterParent;
             this.Text = "WinLogParser";
-            this.toolStrip1.ResumeLayout(false);
-            this.toolStrip1.PerformLayout();
+            this.toolStrip.ResumeLayout(false);
+            this.toolStrip.PerformLayout();
             ((System.ComponentModel.ISupportInitialize)(this.dataGridViewAll)).EndInit();
             this.ResumeLayout(false);
             this.PerformLayout();
@@ -184,7 +249,7 @@ namespace WinLogParser
 
         #endregion
 
-        private ToolStrip toolStrip1;
+        private ToolStrip toolStrip;
         private ToolStripButton Open_TSBtn;
         private ToolStripButton Highlighting_TSBtn;
         private ToolStripButton NewLogFilterForm_TSBtn;
@@ -195,6 +260,11 @@ namespace WinLogParser
         private ToolStripButton InsertLine_TSBtn;
         private ToolStripSeparator toolStripSeparator3;
         private ToolStripButton RowCopy_TSBtn;
-        
+        private ToolStripButton Right_TSBtn;
+        private ToolStripButton Left_TSBtn;
+        private ToolStripLabel Page_TSlbl;
+        private ToolStripTextBox PageInputText_TSTxtbox;
+        private ToolStripSeparator toolStripSeparator4;
+        private ToolStripSeparator toolStripSeparator5;
     }
 }

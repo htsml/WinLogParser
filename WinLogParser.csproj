@@ -50,53 +50,78 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="CommandSettingsForm.cs">
+    <Compile Include="Forms\CmdSettingForms\DirectionCmdSettingsForm.cs">
       <SubType>Form</SubType>
     </Compile>
-    <Compile Include="CommandSettingsForm.Designer.cs">
-      <DependentUpon>CommandSettingsForm.cs</DependentUpon>
+    <Compile Include="Forms\CmdSettingForms\DirectionCmdSettingsForm.Designer.cs">
+      <DependentUpon>DirectionCmdSettingsForm.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Forms\SelectOptionForms\FilterSettingSelection.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Forms\SelectOptionForms\FilterSettingSelection.Designer.cs">
+      <DependentUpon>FilterSettingSelection.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Forms\CmdSettingForms\MachineCmdSettingsForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Forms\CmdSettingForms\MachineCmdSettingsForm.Designer.cs">
+      <DependentUpon>MachineCmdSettingsForm.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Forms\CmdSettingForms\HexCmdSettingsForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Forms\CmdSettingForms\HexCmdSettingsForm.Designer.cs">
+      <DependentUpon>HexCmdSettingsForm.cs</DependentUpon>
     </Compile>
     <Compile Include="Define\Define.cs" />
-    <Compile Include="FilterForm.cs">
+    <Compile Include="Forms\FilterForm.cs">
       <SubType>Form</SubType>
     </Compile>
-    <Compile Include="FilterForm.Designer.cs">
+    <Compile Include="Forms\FilterForm.Designer.cs">
       <DependentUpon>FilterForm.cs</DependentUpon>
     </Compile>
     <Compile Include="HighlightManager.cs" />
     <Compile Include="InsertLineManager.cs" />
     <Compile Include="LogReader.cs" />
     <Compile Include="LogStream.cs" />
-    <Compile Include="MainForm.cs">
+    <Compile Include="Forms\MainForm.cs">
       <SubType>Form</SubType>
     </Compile>
-    <Compile Include="MainForm.Designer.cs">
+    <Compile Include="Forms\MainForm.Designer.cs">
       <DependentUpon>MainForm.cs</DependentUpon>
     </Compile>
     <Compile Include="Model\CmdSetting.cs" />
-    <Compile Include="Model\ColumnDefinition.cs" />
     <Compile Include="Model\Field.cs" />
-    <Compile Include="Model\LogEntry.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Static\Clipboard.cs" />
     <Compile Include="Static\LogParser.cs" />
     <Compile Include="Static\SettingsStorage.cs" />
-    <Compile Include="Utils\FilterLoadSelection.cs">
+    <Compile Include="Forms\SelectOptionForms\FilterLoadSelection.cs">
       <SubType>Form</SubType>
     </Compile>
-    <Compile Include="Utils\FilterLoadSelection.Designer.cs">
+    <Compile Include="Forms\SelectOptionForms\FilterLoadSelection.Designer.cs">
       <DependentUpon>FilterLoadSelection.cs</DependentUpon>
     </Compile>
     <Compile Include="Utils\HighlightPrompt.cs" />
     <Compile Include="Utils\Prompt.cs" />
-    <EmbeddedResource Include="CommandSettingsForm.resx">
-      <DependentUpon>CommandSettingsForm.cs</DependentUpon>
+    <EmbeddedResource Include="Forms\CmdSettingForms\DirectionCmdSettingsForm.resx">
+      <DependentUpon>DirectionCmdSettingsForm.cs</DependentUpon>
     </EmbeddedResource>
-    <EmbeddedResource Include="FilterForm.resx">
+    <EmbeddedResource Include="Forms\SelectOptionForms\FilterSettingSelection.resx">
+      <DependentUpon>FilterSettingSelection.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Forms\CmdSettingForms\MachineCmdSettingsForm.resx">
+      <DependentUpon>MachineCmdSettingsForm.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Forms\CmdSettingForms\HexCmdSettingsForm.resx">
+      <DependentUpon>HexCmdSettingsForm.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Forms\FilterForm.resx">
       <DependentUpon>FilterForm.cs</DependentUpon>
     </EmbeddedResource>
-    <EmbeddedResource Include="MainForm.resx">
+    <EmbeddedResource Include="Forms\MainForm.resx">
       <DependentUpon>MainForm.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Properties\Resources.resx">
@@ -109,7 +134,7 @@
       <DependentUpon>Resources.resx</DependentUpon>
       <DesignTime>True</DesignTime>
     </Compile>
-    <EmbeddedResource Include="Utils\FilterLoadSelection.resx">
+    <EmbeddedResource Include="Forms\SelectOptionForms\FilterLoadSelection.resx">
       <DependentUpon>FilterLoadSelection.cs</DependentUpon>
     </EmbeddedResource>
     <None Include="packages.config" />

@@ -9,6 +9,6 @@ namespace WinLogParser.Model
     public class Field
     {
         public string FieldName { get; set; }
-        public int ByteCount { get; set; }
+        public int Count { get; set; }
     }
 }
