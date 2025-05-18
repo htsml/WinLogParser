@@ -81,15 +81,15 @@ namespace WinLogParser
                     e.Value = "";
             };
 
-            dataGridViewAll.Scroll += (s, e) =>
-            {
-                if (m_IsAutoScroll == false && dataGridViewAll.FirstDisplayedScrollingRowIndex == 0 && m_DisplayStartIndex > 0)
-                {
-                    m_DisplayStartIndex = Math.Max(0, m_DisplayStartIndex - m_PageSize);
-                    dataGridViewAll.RowCount = Math.Min(m_PageSize, m_AllLogs.Count - m_DisplayStartIndex);
-                    dataGridViewAll.Invalidate();
-                }
-            };
+            //dataGridViewAll.Scroll += (s, e) =>
+            //{
+            //    if (m_IsAutoScroll == false && dataGridViewAll.FirstDisplayedScrollingRowIndex == 0 && m_DisplayStartIndex > 0)
+            //    {
+            //        m_DisplayStartIndex = Math.Max(0, m_DisplayStartIndex - m_PageSize);
+            //        dataGridViewAll.RowCount = Math.Min(m_PageSize, m_AllLogs.Count - m_DisplayStartIndex);
+            //        dataGridViewAll.Invalidate();
+            //    }
+            //};
 
             UpdatePage();
 
@@ -244,6 +244,7 @@ namespace WinLogParser
             if (m_OpenFileDialog.ShowDialog() == DialogResult.OK)
             {
                 m_LogStreamService = new LogStream(m_OpenFileDialog.FileName, 100);
+
                 m_LogStreamService.OnNewLine += HandleNewLogLine;
                 m_LogStreamService.Start();
             }

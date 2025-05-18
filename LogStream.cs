@@ -28,6 +28,8 @@ namespace WinLogParser
             if (m_Running) return;
             m_Running = true;
 
+            ReadAll();
+
             m_Thread = new Thread(ReadLoop) { IsBackground = true };
             m_Thread.Start();
         }
@@ -36,7 +38,33 @@ namespace WinLogParser
         {
             m_Running = false;
         }
-
+        private void ReadAll()
+        {
+            try
+            {
+                using (var fs = new FileStream(m_FilePath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
+                {
+                    using (var bs = new BufferedStream(fs,8129))
+                    {
+                        using(var reader = new StreamReader(bs))
+                        {
+                            while(reader.EndOfStream == false)
+                            {
+                                var line = reader.ReadLine();
+                                if (line != null)
+                                    OnNewLine?.Invoke(line);
+                                else
+                                    Thread.Sleep(m_IntervalMs);
+                            }
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                // to do...
+            }
+        }
         private void ReadLoop()
         {
             try
