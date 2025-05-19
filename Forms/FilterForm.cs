@@ -252,6 +252,7 @@ namespace WinLogParser
                                 CmdValue = dig.CmdValue,
                                 CmdIndex = dig.CmdIndex,
                                 Fields = dig.Fields.ToList(),
+                                IsRead = dig.IsRead,
                                 FilterSettingSelectOptionType = dig.FilterSettingSelectOptionType,
                             };
 
@@ -315,7 +316,8 @@ namespace WinLogParser
                     }
                 }
 
-                this.Text = m_Setting.Title;
+                if(settingSelectOptionType != EFilterSettingSelectOptionType.NONE)
+                    this.Text = m_Setting.Title;
             }
         }
         private void CmdSave_TSBtn_Click(object sender, EventArgs e)

@@ -139,6 +139,8 @@ namespace WinLogParser
             string direction = string.Empty;
             string hex = string.Empty;
 
+            bool isRead = false;
+
             byte[] bytes = null;
 
             string[] parts = null;
@@ -158,17 +160,28 @@ namespace WinLogParser
                 timestampDir = parts[0].Trim('[', ']');
                 directionAndHex = parts[1].Trim();
                 directionAndHexSplit = directionAndHex.Split(' ');
+
+                isRead = directionAndHexSplit.Contains("[R]");
+                if (isRead == false)
+                    return false;
+
                 timestampDir = $"{timestampDir} {directionAndHexSplit[0]}";
                 hexBytes = directionAndHexSplit[1].Split('-');
                 // directionAndHex: "[R] 02-01-30"
             }
-            else if (!setting.IsRead && parts.Length == 3)
+            else if (!setting.IsRead && parts.Length == 2)
             {
                 // 형태: [timestamp]/[W]/[hex]
-                timestampDir = $"{parts[0].Trim('[', ']')}/[W]";
-                direction = parts[1].Trim('[', ']');
-                hex = parts[2].Trim();
-                hexBytes = hex.Split('-');
+                timestampDir = parts[0].Trim('[', ']');
+                directionAndHex = parts[1].Trim();
+                directionAndHexSplit = directionAndHex.Split(' ');
+
+                isRead = directionAndHexSplit.Contains("[R]");
+                if (isRead)
+                    return false;
+
+                timestampDir = $"{timestampDir} {directionAndHexSplit[0]}";
+                hexBytes = directionAndHexSplit[1].Split('-');
             }
             else
             {
