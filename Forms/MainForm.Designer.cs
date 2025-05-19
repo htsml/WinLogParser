@@ -224,8 +224,8 @@ namespace WinLogParser
             this.dataGridViewAll.RowHeadersWidth = 51;
             this.dataGridViewAll.Size = new System.Drawing.Size(914, 423);
             this.dataGridViewAll.TabIndex = 1;
-            this.dataGridViewAll.CellClick += new System.Windows.Forms.DataGridViewCellEventHandler(this.dataGridViewAll_CellClick);
-            this.dataGridViewAll.CellFormatting += new System.Windows.Forms.DataGridViewCellFormattingEventHandler(this.dataGridViewAll_CellFormatting);
+            this.dataGridViewAll.CellClick += new System.Windows.Forms.DataGridViewCellEventHandler(this.DataGridViewAll_CellClick);
+            this.dataGridViewAll.CellFormatting += new System.Windows.Forms.DataGridViewCellFormattingEventHandler(this.DataGridViewAll_CellFormatting);
             // 
             // MainForm
             // 

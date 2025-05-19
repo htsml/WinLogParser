@@ -81,16 +81,6 @@ namespace WinLogParser
                     e.Value = "";
             };
 
-            //dataGridViewAll.Scroll += (s, e) =>
-            //{
-            //    if (m_IsAutoScroll == false && dataGridViewAll.FirstDisplayedScrollingRowIndex == 0 && m_DisplayStartIndex > 0)
-            //    {
-            //        m_DisplayStartIndex = Math.Max(0, m_DisplayStartIndex - m_PageSize);
-            //        dataGridViewAll.RowCount = Math.Min(m_PageSize, m_AllLogs.Count - m_DisplayStartIndex);
-            //        dataGridViewAll.Invalidate();
-            //    }
-            //};
-
             UpdatePage();
 
             EnableDoubleBuffering(dataGridViewAll);
@@ -227,22 +217,32 @@ namespace WinLogParser
 
             Page_TSlbl.Text = $"{m_PageIndex + 1} / {Math.Max(1, m_TotalPages)}";
         }
-        private void Open_TSBtn_Click(object sender, EventArgs e)
+        private void ResetDataGridView()
         {
+            m_PageIndex = 0;
+            m_NewTotalPages = 0;
+            m_DisplayStartIndex = 0;
+
+            m_AllLogs.Clear();
+
             m_IsInitialized = false;
 
             dataGridViewAll.Rows.Clear();
             dataGridViewAll.Columns.Clear();
-
-            if (m_LogStreamService != null)
-            {
-                m_LogStreamService.Stop();
-                m_LogStreamService.OnNewLine -= HandleNewLogLine;
-                m_LogStreamService = null;
-            }
-
+        }
+        private void Open_TSBtn_Click(object sender, EventArgs e)
+        {
             if (m_OpenFileDialog.ShowDialog() == DialogResult.OK)
             {
+                ResetDataGridView();
+
+                if (m_LogStreamService != null)
+                {
+                    m_LogStreamService.Stop();
+                    m_LogStreamService.OnNewLine -= HandleNewLogLine;
+                    m_LogStreamService = null;
+                }
+
                 m_LogStreamService = new LogStream(m_OpenFileDialog.FileName, 100);
 
                 m_LogStreamService.OnNewLine += HandleNewLogLine;
@@ -271,12 +271,13 @@ namespace WinLogParser
         private void NewLogFilterForm_TSBtn_Click(object sender, EventArgs e)
         {
             var filterForm = new FilterForm();
+            
             filterForm.FormClosed += (s, ea) => m_FilterForms.Remove(filterForm);
             m_FilterForms.Add(filterForm);
             filterForm.Show();
         }
 
-        private void dataGridViewAll_CellClick(object sender, DataGridViewCellEventArgs e)
+        private void DataGridViewAll_CellClick(object sender, DataGridViewCellEventArgs e)
         {
             if (e.RowIndex < 0 || e.ColumnIndex < 0) return;
 
@@ -289,7 +290,7 @@ namespace WinLogParser
             }
         }
 
-        private void dataGridViewAll_CellFormatting(object sender, DataGridViewCellFormattingEventArgs e)
+        private void DataGridViewAll_CellFormatting(object sender, DataGridViewCellFormattingEventArgs e)
         {
             m_HighlightManager.ApplyHighlight(e);
         }
