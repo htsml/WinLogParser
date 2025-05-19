@@ -1,0 +1,37 @@
+{
+  "Title": "0x40_PressureSensorData_Read",
+  "CmdValue": "40",
+  "CmdIndex": "3",
+  "To": null,
+  "From": null,
+  "CMD": null,
+  "IsDirection": false,
+  "IsRead": true,
+  "Fields": [
+    {
+      "FieldName": "STX",
+      "Count": 1
+    },
+    {
+      "FieldName": "ID",
+      "Count": 1
+    },
+    {
+      "FieldName": "CMD",
+      "Count": 1
+    },
+    {
+      "FieldName": "Pressure",
+      "Count": 4
+    },
+    {
+      "FieldName": "Unit",
+      "Count": 1
+    },
+    {
+      "FieldName": "ETX",
+      "Count": 1
+    }
+  ],
+  "FilterSettingSelectOptionType": 1
+}

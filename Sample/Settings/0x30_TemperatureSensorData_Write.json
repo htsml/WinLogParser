@@ -1,0 +1,41 @@
+{
+  "Title": "0x30_TemperatureSensorData_Write",
+  "CmdValue": "30",
+  "CmdIndex": "3",
+  "To": null,
+  "From": null,
+  "CMD": null,
+  "IsDirection": false,
+  "IsRead": false,
+  "Fields": [
+    {
+      "FieldName": "STX",
+      "Count": 1
+    },
+    {
+      "FieldName": "ID",
+      "Count": 1
+    },
+    {
+      "FieldName": "CMD",
+      "Count": 1
+    },
+    {
+      "FieldName": "Temperature",
+      "Count": 2
+    },
+    {
+      "FieldName": "SensorID",
+      "Count": 1
+    },
+    {
+      "FieldName": "Status",
+      "Count": 1
+    },
+    {
+      "FieldName": "ETX",
+      "Count": 1
+    }
+  ],
+  "FilterSettingSelectOptionType": 1
+}
